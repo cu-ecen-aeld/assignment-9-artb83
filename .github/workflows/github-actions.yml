@@ -19,8 +19,8 @@ jobs:
           - name: Run build
             timeout-minutes: 600
             run: |
-               # 1. Mount host directories inside the docker container
-               # 2. Tell BitBake to override DL_DIR and SSTATE_DIR with these paths
+               # 1. Mount host directories inside the docker container \ 
+               # 2. Tell BitBake to override DL_DIR and SSTATE_DIR with these paths \
                docker run --rm \
                  -v $SSH_AUTH_SOCK:/ssh-agent -e SSH_AUTH_SOCK=/ssh-agent \
                  -e GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
@@ -30,8 +30,8 @@ jobs:
                  -e BB_ENV_PASSTHROUGH_ADDITIONS="DL_DIR SSTATE_DIR" \
                  -e DL_DIR="/yocto-cache/downloads" \
                  -e SSTATE_DIR="/yocto-cache/sstate-cache" \
-                 cuaesd/aesd-autotest:assignment8-yocto \
                  --workdir=${GITHUB_WORKSPACE} \
+                 cuaesd/aesd-autotest:assignment8-yocto \
                  ./build.sh
           - name: Cleanup
             if: always()
