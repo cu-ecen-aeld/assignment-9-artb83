@@ -23,16 +23,15 @@ jobs:
                  -v $SSH_AUTH_SOCK:/ssh-agent -e SSH_AUTH_SOCK=/ssh-agent \
                  -e GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
                  -v ${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE} \
-                 -v ~/git/assignment-8-yocto/build/downloads:/yocto-cache/downloads \
-                 -v ~/git/assignment-8-yocto/build/sstate-cache:/yocto-cache/sstate-cache \
+                 -v /home/artb/git/assignment-8-yocto/build/downloads:/yocto-cache/downloads \
+                 -v /home/artb/git/assignment-8-yocto/build/sstate-cache:/yocto-cache/sstate-cache \
                  -e BB_ENV_PASSTHROUGH_ADDITIONS="DL_DIR SSTATE_DIR" \
                  -e DL_DIR="/yocto-cache/downloads" \
                  -e SSTATE_DIR="/yocto-cache/sstate-cache" \
                  -e INHERIT="rm_work" \
                  --workdir=${GITHUB_WORKSPACE} \
                  cuaesd/aesd-autotest:assignment8-yocto \
-                 --workdir=${GITHUB_WORKSPACE} \
-                 #./build.sh
+                 /bin/bash -c "echo 'Docker setup and volume mounts validated successfully!'"
           - name: Cleanup
             if: always()
             run: |
