@@ -36,7 +36,8 @@ jobs:
                  --workdir=${GITHUB_WORKSPACE} \
                  cuaesd/aesd-autotest:assignment8-yocto \
                  \
-                 /bin/bash -c "apt-get update && apt-get install -y lz4 zstd && ./build.sh"
+                 /bin/bash -c "curl -L https://github.com -o lz4.tar.gz && tar -xzf lz4.tar.gz && cd lz4-v1.9.4 && make -j$(nproc) && sudo make install && cd .. && rm -rf lz4* && curl -L https://github.com -o zstd.tar.gz && tar -xzf zstd.tar.gz && cd zstd-1.5.5 && make -j$(nproc) && sudo make install && cd .. && rm -rf zstd* && ./build.sh"
+
           - name: Cleanup
             if: always()
             run: |
