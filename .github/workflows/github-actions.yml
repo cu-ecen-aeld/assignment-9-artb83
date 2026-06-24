@@ -20,24 +20,33 @@ jobs:
           - name: Run build
             timeout-minutes: 600
             run: |
-               # 1. Mount host directories inside the docker container \ 
-               # 2. Tell BitBake to override DL_DIR and SSTATE_DIR with these paths \
-               docker run --rm \
-                 -v $SSH_AUTH_SOCK:/ssh-agent -e SSH_AUTH_SOCK=/ssh-agent \
-                 -e GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
-                 -v ${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE} \
-                 -v ~/git/assignment-8-yocto/build/downloads:/yocto-cache/downloads \
-                 -v ~/git/assignment-8-yocto/build/sstate-cache:/yocto-cache/sstate-cache \
-                 -e BB_ENV_PASSTHROUGH_ADDITIONS="DL_DIR SSTATE_DIR" \
-                 -e DL_DIR="/yocto-cache/downloads" \
-                 -e SSTATE_DIR="/yocto-cache/sstate-cache" \
-                 -e INHERIT="rm_work" \
-                 \
-                 --workdir=${GITHUB_WORKSPACE} \
-                 cuaesd/aesd-autotest:assignment8-yocto \
-                 \
-                 /bin/bash -c "curl -L https://github.com -o lz4.tar.gz && tar -xzf lz4.tar.gz && cd lz4-v1.9.4 && make -j$(nproc) && sudo make install && cd .. && rm -rf lz4* && curl -L https://github.com -o zstd.tar.gz && tar -xzf zstd.tar.gz && cd zstd-1.5.5 && make -j$(nproc) && sudo make install && cd .. && rm -rf zstd* && ./build.sh"
+              # 1. Create the Yocto cache folders on the cloud runner host
+              mkdir -p ~/yocto-cache/downloads
+              mkdir -p ~/yocto-cache/sstate-cache
 
+              # 2. Use ubuntu-latest's native curl to pull down files to the host
+              curl -L https://github.com -o lz4.tar.gz
+              curl -L https://github.com -o zstd.tar.gz
+              
+              # 3. Spin up the container, passing the downloaded archives inside to compile them
+              docker run --rm \
+                -v $SSH_AUTH_SOCK:/ssh-agent \
+                -e SSH_AUTH_SOCK=/ssh-agent \
+                -e GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
+                -v ${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE} \
+                -v ~/yocto-cache/downloads:/yocto-cache/downloads \
+                -v ~/yocto-cache/sstate-cache:/yocto-cache/sstate-cache \
+                -e BB_ENV_PASSTHROUGH_ADDITIONS="DL_DIR SSTATE_DIR INHERIT" \
+                -e DL_DIR="/yocto-cache/downloads" \
+                -e SSTATE_DIR="/yocto-cache/sstate-cache" \
+                -e INHERIT="rm_work" \
+                --workdir=${GITHUB_WORKSPACE} \
+                cuaesd/aesd-autotest:assignment8-yocto \
+                /bin/bash -c "
+                  tar -xzf lz4.tar.gz && cd lz4-v1.9.4 && make -j\$(nproc) && sudo make install && cd .. && rm -rf lz4* &&
+                  tar -xzf zstd.tar.gz && cd zstd-1.5.5 && make -j\$(nproc) && sudo make install && cd .. && rm -rf zstd* &&
+                  ./build.sh
+                  "
           - name: Cleanup
             if: always()
             run: |
