@@ -24,9 +24,9 @@ jobs:
               mkdir -p ~/yocto-cache/downloads
               mkdir -p ~/yocto-cache/sstate-cache
 
-              # 2. Use stable Git tags to fetch lz4 and zstd cleanly onto the host workspace
-              git clone --depth 1 --branch v1.9.4 https://github.com lz4-src
-              git clone --depth 1 --branch v1.5.5 https://github.com zstd-src
+              # 2. Correctly clone both repositories into distinct source folders
+              git clone --depth 1 --branch v1.9.4 https://github.com/lz4/lz4.git lz4-src
+              git clone --depth 1 --branch v1.5.5 https://github.com/facebook/zstd.git zstd-src
               
               # 3. Spin up the container, pointing to the source folders to compile them
               docker run --rm \
@@ -47,6 +47,7 @@ jobs:
                   cd zstd-src && make -j\$(nproc) && sudo make install && cd .. && rm -rf zstd-src &&
                   ./build.sh
                 "
+
           - name: Cleanup
             if: always()
             run: |
