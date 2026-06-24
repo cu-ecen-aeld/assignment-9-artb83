@@ -45,6 +45,8 @@ jobs:
                 /bin/bash -c "
                   cd lz4-src && make -j\$(nproc) && sudo make install && cd .. && rm -rf lz4-src &&
                   cd zstd-src && make -j\$(nproc) && sudo make install && cd .. && rm -rf zstd-src &&
+                  sudo ln -sf /usr/local/bin/zstd /usr/local/bin/pzstd &&
+                  sudo ln -sf /usr/local/bin/zstd /usr/local/bin/unzstd &&
                   ./build.sh
                 "
 
