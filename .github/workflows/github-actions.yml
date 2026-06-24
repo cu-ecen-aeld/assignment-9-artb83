@@ -35,8 +35,8 @@ jobs:
                  \
                  --workdir=${GITHUB_WORKSPACE} \
                  cuaesd/aesd-autotest:assignment8-yocto \
-                 ./build.sh
-                 #/bin/bash -c "apt-get update && apt-get install -y lz4 zstd && ./build.sh"
+                 \
+                 bin/bash -c "apt-get update && apt-get install -y lz4 zstd && ./build.sh"
           - name: Cleanup
             if: always()
             run: |
