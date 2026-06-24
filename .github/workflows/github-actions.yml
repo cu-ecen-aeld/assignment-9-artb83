@@ -7,12 +7,11 @@ on:
             - '*'
 jobs:
       full-test:
-        runs-on: ubuntu-latest
+        runs-on: self-hosted
         steps:
           - uses: actions/checkout@v3
             with:
-              clean: true
-              fetch-depth: 0
+              clean: false
               submodules: 'recursive'
           - uses: webfactory/ssh-agent@v0.5.4
             with:
@@ -20,39 +19,20 @@ jobs:
           - name: Run build
             timeout-minutes: 600
             run: |
-              # 1. Create the Yocto cache folders on the cloud runner host
-              mkdir -p ~/yocto-cache/downloads
-              mkdir -p ~/yocto-cache/sstate-cache
-
-              # 2. Correctly clone both repositories into distinct source folders
-              git clone --depth 1 --branch v1.9.4 https://github.com/lz4/lz4.git lz4-src
-              git clone --depth 1 --branch v1.5.5 https://github.com/facebook/zstd.git zstd-src
-              
-              # 3. Spin up the container, pointing to the source folders to compile them
-              docker run --rm \
-                --user 1001:127 \
-                -v $SSH_AUTH_SOCK:/ssh-agent \
-                -e SSH_AUTH_SOCK=/ssh-agent \
-                -e GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
-                -v ${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE} \
-                -v ~/yocto-cache/downloads:/yocto-cache/downloads \
-                -v ~/yocto-cache/sstate-cache:/yocto-cache/sstate-cache \
-                -e BB_ENV_PASSTHROUGH_ADDITIONS="DL_DIR SSTATE_DIR INHERIT" \
-                -e DL_DIR="/yocto-cache/downloads" \
-                -e SSTATE_DIR="/yocto-cache/sstate-cache" \
-                -e INHERIT="rm_work" \
-                --workdir=${GITHUB_WORKSPACE} \
-                cuaesd/aesd-autotest:assignment8-yocto \
-                /bin/bash -c "
-                  mkdir -p \${GITHUB_WORKSPACE}/bin &&
-                  export PATH=\${GITHUB_WORKSPACE}/bin:\$PATH &&
-                  cd lz4-src && make -j\$(nproc) && cp lz4 lz4c \${GITHUB_WORKSPACE}/bin/ && cd .. && rm -rf lz4-src &&
-                  cd zstd-src && make -j\$(nproc) && cp zstd \${GITHUB_WORKSPACE}/bin/ && cd .. && rm -rf zstd-src &&
-                  ln -sf \${GITHUB_WORKSPACE}/bin/zstd \${GITHUB_WORKSPACE}/bin/pzstd &&
-                  ln -sf \${GITHUB_WORKSPACE}/bin/zstd \${GITHUB_WORKSPACE}/bin/unzstd &&
-                  ./build.sh
-                "
-
+               docker run --rm \
+                 -v $SSH_AUTH_SOCK:/ssh-agent -e SSH_AUTH_SOCK=/ssh-agent \
+                 -e GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
+                 -v ${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE} \
+                 -v ~/git/assignment-8-yocto/build/downloads:/yocto-cache/downloads \
+                 -v ~/git/assignment-8-yocto/build/sstate-cache:/yocto-cache/sstate-cache \
+                 -e BB_ENV_PASSTHROUGH_ADDITIONS="DL_DIR SSTATE_DIR" \
+                 -e DL_DIR="/yocto-cache/downloads" \
+                 -e SSTATE_DIR="/yocto-cache/sstate-cache" \
+                 -e INHERIT="rm_work" \
+                 --workdir=${GITHUB_WORKSPACE} \
+                 cuaesd/aesd-autotest:assignment8-yocto \
+                 --workdir=${GITHUB_WORKSPACE} \
+                 #./build.sh
           - name: Cleanup
             if: always()
             run: |
