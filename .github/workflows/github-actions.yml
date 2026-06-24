@@ -30,6 +30,7 @@ jobs:
               
               # 3. Spin up the container, pointing to the source folders to compile them
               docker run --rm \
+                --user 1001:127 \
                 -v $SSH_AUTH_SOCK:/ssh-agent \
                 -e SSH_AUTH_SOCK=/ssh-agent \
                 -e GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
@@ -43,10 +44,12 @@ jobs:
                 --workdir=${GITHUB_WORKSPACE} \
                 cuaesd/aesd-autotest:assignment8-yocto \
                 /bin/bash -c "
-                  cd lz4-src && make -j\$(nproc) && sudo make install && cd .. && rm -rf lz4-src &&
-                  cd zstd-src && make -j\$(nproc) && sudo make install && cd .. && rm -rf zstd-src &&
-                  sudo ln -sf /usr/local/bin/zstd /usr/local/bin/pzstd &&
-                  sudo ln -sf /usr/local/bin/zstd /usr/local/bin/unzstd &&
+                  mkdir -p \${GITHUB_WORKSPACE}/bin &&
+                  export PATH=\${GITHUB_WORKSPACE}/bin:\$PATH &&
+                  cd lz4-src && make -j\$(nproc) && cp lz4 lz4c \${GITHUB_WORKSPACE}/bin/ && cd .. && rm -rf lz4-src &&
+                  cd zstd-src && make -j\$(nproc) && cp zstd \${GITHUB_WORKSPACE}/bin/ && cd .. && rm -rf zstd-src &&
+                  ln -sf \${GITHUB_WORKSPACE}/bin/zstd \${GITHUB_WORKSPACE}/bin/pzstd &&
+                  ln -sf \${GITHUB_WORKSPACE}/bin/zstd \${GITHUB_WORKSPACE}/bin/unzstd &&
                   ./build.sh
                 "
 
