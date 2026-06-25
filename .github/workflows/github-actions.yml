@@ -1,46 +1,80 @@
 name: assignment-test
 on:
-    push:
-        tags-ignore:
-            - '*'
-        branches:
-            - '*'
+  push:
+    tags-ignore:
+      - '*'
+    branches:
+      - '*'
+
 jobs:
-      full-test:
-        runs-on: self-hosted
-        steps:
-          - uses: actions/checkout@v3
-            with:
-              clean: false
-              submodules: 'recursive'
-          - uses: webfactory/ssh-agent@v0.5.4
-            with:
-                 ssh-private-key: ${{ secrets.ASSIGNMENT_8_AESDCHAR_YOCTO }}
-          - name: Run build
-            timeout-minutes: 600
-            run: |
-               docker run --rm \
-                 -v $SSH_AUTH_SOCK:/ssh-agent -e SSH_AUTH_SOCK=/ssh-agent \
-                 -e GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
-                 -v ${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE} \
-                 -v /home/artb/git/assignment-8-yocto/build/downloads:/yocto-cache/downloads \
-                 -v /home/artb/git/assignment-8-yocto/build/sstate-cache:/yocto-cache/sstate-cache \
-                 -e BB_ENV_PASSTHROUGH_ADDITIONS="DL_DIR SSTATE_DIR" \
-                 -e DL_DIR="/yocto-cache/downloads" \
-                 -e SSTATE_DIR="/yocto-cache/sstate-cache" \
-                 -e INHERIT="rm_work" \
-                 --workdir=${GITHUB_WORKSPACE} \
-                 cuaesd/aesd-autotest:assignment8-yocto \
-                 /bin/bash -c "echo 'Docker setup and volume mounts validated successfully!'"
-          - name: Cleanup
-            if: always()
-            run: |
-              ssh-add -D
-          - name: Run full test
-            timeout-minutes: 15
-            run: |
-               docker run --rm \
-                 -v ${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE} \
-                 --workdir=${GITHUB_WORKSPACE} \
-                 cuaesd/aesd-autotest:assignment8-yocto \
-                 ./full-test.sh
+  full-test:
+    runs-on: ubuntu-latest
+    env:
+      YOCTO_DOWNLOADS: .yocto-cache/downloads
+      YOCTO_SSTATE: .yocto-cache/sstate-cache
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Restore Yocto downloads cache
+        uses: actions/cache@v4
+        with:
+          path: .yocto-cache/downloads
+          key: ${{ runner.os }}-yocto-downloads-${{ github.ref }}
+          restore-keys: |
+            ${{ runner.os }}-yocto-downloads-
+
+      - name: Restore Yocto sstate cache
+        uses: actions/cache@v4
+        with:
+          path: .yocto-cache/sstate-cache
+          key: ${{ runner.os }}-yocto-sstate-${{ github.ref }}
+          restore-keys: |
+            ${{ runner.os }}-yocto-sstate-
+
+      - name: Start ssh-agent
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.ASSIGNMENT_8_AESDCHAR_YOCTO }}
+
+      - name: Validate Docker setup and mounts
+        timeout-minutes: 600
+        run: |
+          cd "${GITHUB_WORKSPACE}"
+          ./ .build.sh
+
+      - name: Run full test
+        timeout-minutes: 15
+        run: |
+          docker run --rm \
+            -v $SSH_AUTH_SOCK:/ssh-agent -e SSH_AUTH_SOCK=/ssh-agent \
+            -e GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
+            -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
+            -v "${GITHUB_WORKSPACE}/.yocto-cache/downloads:/yocto-cache/downloads" \
+            -v "${GITHUB_WORKSPACE}/.yocto-cache/sstate-cache:/yocto-cache/sstate-cache" \
+            --workdir="${GITHUB_WORKSPACE}" \
+            cuaesd/aesd-autotest:assignment8-yocto \
+            ./full-test.sh
+
+      - name: Save Yocto downloads cache
+        if: always()
+        uses: actions/cache@v4
+        with:
+          path: .yocto-cache/downloads
+          key: ${{ runner.os }}-yocto-downloads-${{ github.ref }}
+
+      - name: Save Yocto sstate cache
+        if: always()
+        uses: actions/cache@v4
+        with:
+          path: .yocto-cache/sstate-cache
+          key: ${{ runner.os }}-yocto-sstate-${{ github.ref }}
+
+      - name: Cleanup
+        if: always()
+        run: |
+          ssh-add -D
