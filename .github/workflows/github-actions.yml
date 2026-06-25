@@ -45,7 +45,7 @@ jobs:
         timeout-minutes: 600
         run: |
           cd "${GITHUB_WORKSPACE}"
-          ./ .build.sh
+          ./.build.sh
 
       - name: Run full test
         timeout-minutes: 15
@@ -56,6 +56,7 @@ jobs:
             -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
             -v "${GITHUB_WORKSPACE}/.yocto-cache/downloads:/yocto-cache/downloads" \
             -v "${GITHUB_WORKSPACE}/.yocto-cache/sstate-cache:/yocto-cache/sstate-cache" \
+            -e INHERIT="rm_work" \
             --workdir="${GITHUB_WORKSPACE}" \
             cuaesd/aesd-autotest:assignment8-yocto \
             ./full-test.sh
