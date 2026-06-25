@@ -41,6 +41,6 @@ jobs:
             run: |
                docker run --rm \
                  -v ${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE} \
-                 cuaesd/aesd-autotest:assignment8-yocto \
                  --workdir=${GITHUB_WORKSPACE} \
+                 cuaesd/aesd-autotest:assignment8-yocto \
                  ./full-test.sh
