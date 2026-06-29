@@ -31,8 +31,8 @@ jobs:
                  -e INHERIT="rm_work" \
                  --workdir=${GITHUB_WORKSPACE} \
                  cuaesd/aesd-autotest:24-assignment6-yocto \
-                 ./build.sh
                  /bin/bash -c "echo 'Docker setup and volume mounts validated successfully!'"
+                 ./build.sh
           - name: Cleanup
             if: always()
             run: |
