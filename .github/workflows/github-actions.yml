@@ -15,7 +15,7 @@ jobs:
               submodules: 'recursive'
           - uses: webfactory/ssh-agent@v0.5.4
             with:
-                 ssh-private-key: ${{ secrets.ASSIGNMENT_8_AESDCHAR_YOCTO }}
+                 ssh-private-key: ${{ secrets.ASSIGNMENT_9_AESDCHAR_IOCTL_YOCTO }}
           - name: Run build
             timeout-minutes: 600
             run: |
@@ -23,8 +23,8 @@ jobs:
                  -v $SSH_AUTH_SOCK:/ssh-agent -e SSH_AUTH_SOCK=/ssh-agent \
                  -e GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
                  -v ${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE} \
-                 -v /home/artb/git/assignment-8-yocto/build/downloads:/yocto-cache/downloads \
-                 -v /home/artb/git/assignment-8-yocto/build/sstate-cache:/yocto-cache/sstate-cache \
+                 -v /home/artb/git/assignment-9-yocto/build/downloads:/yocto-cache/downloads \
+                 -v /home/artb/git/assignment-9-yocto/build/sstate-cache:/yocto-cache/sstate-cache \
                  -e BB_ENV_PASSTHROUGH_ADDITIONS="DL_DIR SSTATE_DIR" \
                  -e DL_DIR="/yocto-cache/downloads" \
                  -e SSTATE_DIR="/yocto-cache/sstate-cache" \
