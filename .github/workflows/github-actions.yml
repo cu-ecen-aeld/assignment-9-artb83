@@ -24,6 +24,8 @@ jobs:
             timeout-minutes: 15
             run: |
                docker run --rm \
+                 --env SKIP_BUILD=${{ env.SKIP_BUILD }} \
+                 --env DO_VALIDATE=${{ env.DO_VALIDATE }} \
                  -v /home/artb/git/assignment-9-yocto:/home/artb/git/assignment-9-yocto \
                  --workdir=/home/artb/git/assignment-9-yocto \
                  cuaesd/aesd-autotest:assignment6-yocto \
