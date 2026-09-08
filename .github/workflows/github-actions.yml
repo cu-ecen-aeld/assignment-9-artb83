@@ -9,39 +9,19 @@ jobs:
       full-test:
         runs-on: self-hosted
         steps:
+          # 1. Access the workspace repository without cleaning out existing files
           - uses: actions/checkout@v3
             with:
               clean: false
               submodules: 'recursive'
-          - uses: webfactory/ssh-agent@v0.5.4
-            with:
-                 ssh-private-key: ${{ secrets.ASSIGNMENT_9_AESDCHAR_IOCTL_YOCTO }}
-          - name: Run build
-            timeout-minutes: 600
-            run: |
-               docker run --rm \
-                 -v $SSH_AUTH_SOCK:/ssh-agent -e SSH_AUTH_SOCK=/ssh-agent \
-                 -e GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
-                 -v ${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE} \
-                 -v /home/artb/git/assignment-9-yocto/build/downloads:/yocto-cache/downloads \
-                 -v /home/artb/git/assignment-9-yocto/build/sstate-cache:/yocto-cache/sstate-cache \
-                 -e BB_ENV_PASSTHROUGH_ADDITIONS="DL_DIR SSTATE_DIR" \
-                 -e DL_DIR="/yocto-cache/downloads" \
-                 -e SSTATE_DIR="/yocto-cache/sstate-cache" \
-                 -e INHERIT="rm_work" \
-                 --workdir=${GITHUB_WORKSPACE} \
-                 cuaesd/aesd-autotest:24-assignment6-yocto \
-                 /bin/bash -c "echo 'Docker setup and volume mounts validated successfully!'"
-                 ./build.sh
-          - name: Cleanup
-            if: always()
-            run: |
-              ssh-add -D
+              
+          # 2. Run the tests directly using your existing build artifacts
           - name: Run full test
             timeout-minutes: 15
             run: |
                docker run --rm \
                  -v ${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE} \
+                 -v /home/artb/git/assignment-9-yocto/build:/home/artb/git/assignment-9-yocto/build \
                  --workdir=${GITHUB_WORKSPACE} \
                  cuaesd/aesd-autotest:assignment6-yocto \
                  ./full-test.sh
