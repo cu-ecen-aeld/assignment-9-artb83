@@ -11,7 +11,7 @@ jobs:
         # Skip running buil.sh and validation scripts, move to full-test.sh directly.
         env:
             SKIP_BUILD: 1
-            DO_VALIDATE: 0
+            DO_VALIDATE: 1
         steps:
           # 1. Access the workspace repository without cleaning out existing files
           - uses: actions/checkout@v3
