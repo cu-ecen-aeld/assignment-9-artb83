@@ -20,8 +20,7 @@ jobs:
             timeout-minutes: 15
             run: |
                docker run --rm \
-                 -v ${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE} \
-                 -v /home/artb/git/assignment-9-yocto/build:/home/artb/git/assignment-9-yocto/build \
-                 --workdir=${GITHUB_WORKSPACE} \
-                 cuaesd/aesd-autotest:24-assignment6-yocto \
+                 -v /home/artb/git/assignment-9-yocto:/home/artb/git/assignment-9-yocto \
+                 --workdir=/home/artb/git/assignment-9-yocto \
+                 cuaesd/aesd-autotest:assignment6-yocto \
                  ./full-test.sh
