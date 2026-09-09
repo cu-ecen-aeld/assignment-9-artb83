@@ -1,0 +1,40 @@
+name: assignment-test
+on:
+    push:
+        tags-ignore:
+            - '*'
+        branches:
+            - '*'
+jobs:
+      full-test:
+        runs-on: self-hosted
+        # Skip running buil.sh and validation scripts, move to full-test.sh directly.
+        env:
+            SKIP_BUILD: 1
+            DO_VALIDATE: 1
+            BB_ENV_PASSTHROUGH_ADDITIONS: "DL_DIR SSTATE_DIR"
+			DL_DIR: "/home/artb/shared_yocto_files/yocto_downloads"
+			SSTATE_DIR: "/home/artb/shared_yocto_files/yocto_sstate_cache"
+        steps:
+          # 1. Access the workspace repository without cleaning out existing files
+          - uses: actions/checkout@v3
+            with:
+              clean: false
+              submodules: 'recursive'
+              
+          # 2. Run the tests directly using your existing build artifacts
+          - name: Run full test
+            timeout-minutes: 15
+            run: |
+               docker run --rm \
+                 --env SKIP_BUILD=${{ env.SKIP_BUILD }} \
+                 --env DO_VALIDATE=${{ env.DO_VALIDATE }} \
+                 --env BB_ENV_PASSTHROUGH_ADDITIONS="DL_DIR SSTATE_DIR" \
+				 --env DL_DIR="${{ env.DL_DIR }}" \
+				 --env SSTATE_DIR="${{ env.SSTATE_DIR }}" \
+				 -v "${{ env.DL_DIR }}:${{ env.DL_DIR }}" \
+				 -v "${{ env.SSTATE_DIR }}:${{ env.SSTATE_DIR }}" \
+                 -v /home/artb/git/assignment-9-yocto:/home/artb/git/assignment-9-yocto \
+                 --workdir=/home/artb/git/assignment-9-yocto \
+                 cuaesd/aesd-autotest:assignment6-yocto \
+                 ./full-test.sh
